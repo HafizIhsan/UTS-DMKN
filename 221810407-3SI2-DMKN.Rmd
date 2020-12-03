@@ -1,0 +1,70 @@
+---
+title: "UTS DMKN"
+author: "M. Hafiz Al Ihsan"
+date: "October 27, 2020"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Library
+```{r message=FALSE, warning=FALSE}
+library(party)
+library(psych)
+library(caret)
+library(dplyr)
+```
+
+
+## Import Data
+
+```{r}
+library(readr)
+kredit <- read_csv("C:/Users/Hafiz/OneDrive/Documents/PJJ/Tingkat 3/UTS/DMKN/crx.csv")
+head(kredit)
+```
+
+## Missing Value
+```{r}
+#Menghitung Jumlah Missing
+sum(is.na(kredit))
+```
+
+Missing value tidak ada
+
+
+# Kalsifikasi Decision Tree
+
+### 1. Konversi Data
+Ubah tipe variabel menjadi tipe faktor
+```{r}
+kredit <- kredit %>% mutate_if(is.character,as.factor)
+str(kredit)
+```
+
+### 2. Split Data
+Memecah data menjadi data training (80% dari data awal) dan data test (20% dari data awal)
+```{r}
+set.seed(1234)
+sampel <- sample(2,nrow(kredit),replace = T, prob = c(0.8,0.2))
+trainingdat <- kredit[sampel==1, ]
+testingdat <- kredit[sampel==2, ]
+print(paste("Jumlah train data :", nrow(trainingdat)))
+print(paste("Jumlah test data :", nrow(testingdat)))
+```
+
+### 3. Membuat Model
+Kita membuat model berdasarkan variabel bertipe nominal saja
+```{r}
+decision_tree <- ctree(A16~A1+A4+A5+A6+A7+A9+A10+A12+A13, data=trainingdat)
+plot(decision_tree)
+```
+
+### 4. Model Evaluation
+```{r}
+prediksi <- predict(decision_tree, testingdat)
+confusionMatrix(table(prediksi,testingdat$A16))
+```
